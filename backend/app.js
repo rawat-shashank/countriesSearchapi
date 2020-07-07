@@ -39,6 +39,7 @@ app.get("/searchCountries/:keyword?", (req, res) => {
   try {
     const countries = require("./config/dataset");
     let { keyword = null } = req.params;
+    let envLimit = env.LIMIT ? env.LIMIT : 10;
 
     if (keyword) {
       keyword = keyword.toLowerCase();
@@ -54,7 +55,7 @@ app.get("/searchCountries/:keyword?", (req, res) => {
     );
 
     // to get other matches as well.
-    if (resp.length < 10) {
+    if (resp.length < envLimit) {
       const resp1 = countries.filter(
         (el) =>
           !el.name.toLowerCase().startsWith(keyword) &&
@@ -64,12 +65,14 @@ app.get("/searchCountries/:keyword?", (req, res) => {
     }
 
     // to limit search result
-    resp = resp.slice(0, env.LIMIT);
+    resp = resp.slice(0, envLimit);
 
     if (resp.length) {
       res.json(resp);
     } else {
-      res.status(204).json();
+      res.status(200).json({
+        message: "Not Content for given keyword",
+      });
     }
   } catch (e) {
     if (e.code === "MODULE_NOT_FOUND") {
